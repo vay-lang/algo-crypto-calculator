@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Калькулятор размера позиции — AlgoCryptoTA</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 26px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #666;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e6f2ff 100%);
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .result.show {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-title {
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .recommendation {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #ffc107;
+            margin-bottom: 20px;
+        }
+
+        .leverage-value {
+            font-size: 32px;
+            color: #667eea;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+
+        .recommendation-text {
+            color: #555;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .result-label {
+            color: #666;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .result-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .result-value.loss {
+            color: #e74c3c;
+        }
+
+        .result-value.profit {
+            color: #27ae60;
+        }
+
+        .result-value.risk {
+            color: #667eea;
+        }
+
+        .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            padding: 10px;
+            background: #fadbd8;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .info-box {
+            background: #f5f5f5;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #555;
+            line-height: 1.5;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Калькулятор позиции</h1>
+        <p class="subtitle">AlgoCryptoTA</p>
+
+        <form onsubmit="calculate(event)">
+            <div class="form-group">
+                <label>💰 Ваш баланс (USDT)</label>
+                <input type="number" id="balance" placeholder="Например: 1363" min="0" step="0.01" required>
+            </div>
+
+            <div class="form-group">
+                <label>🎯 Точка входа (Entry)</label>
+                <input type="number" id="entry" placeholder="Например: 0.096360" min="0" step="0.00000001" required>
+            </div>
+
+            <div class="form-group">
+                <label>🛑 Стоп-лосс (SL)</label>
+                <input type="number" id="sl" placeholder="Например: 0.097356" min="0" step="0.00000001" required>
+            </div>
+
+            <div class="form-group">
+                <label>💚 Тейк-профит (TP)</label>
+                <input type="number" id="tp" placeholder="Например: 0.104700" min="0" step="0.00000001" required>
+            </div>
+
+            <button type="submit" class="button">🧮 Рассчитать</button>
+
+            <div class="error" id="error"></div>
+        </form>
+
+        <div class="result" id="result">
+            <div class="result-title">✅ Рекомендация для 2% риска:</div>
+
+            <div class="recommendation">
+                <div class="recommendation-text">⭐ ВЫБЕРИ ПЛЕЧО:</div>
+                <div class="leverage-value" id="leverageValue">—</div>
+                <div class="recommendation-text">
+                    При плече <span id="leverageText">—</span> ты потеряешь только <strong>2% баланса</strong>
+                </div>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-label">Контрактов</div>
+                    <div class="result-value" id="contractsValue">—</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Потеря при SL</div>
+                    <div class="result-value loss" id="lossValue">—</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Прибыль при TP</div>
+                    <div class="result-value profit" id="profitValue">—</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-label">Риск</div>
+                    <div class="result-value risk" id="riskValue">—</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                💡 Это рекомендация для 2% риска. Ты можешь выбрать другое плечо если хочешь взять больше или меньше риска — это твой выбор!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function calculate(event) {
+            event.preventDefault();
+
+            const balance = parseFloat(document.getElementById('balance').value);
+            const entry = parseFloat(document.getElementById('entry').value);
+            const sl = parseFloat(document.getElementById('sl').value);
+            const tp = parseFloat(document.getElementById('tp').value);
+
+            const errorDiv = document.getElementById('error');
+            const resultDiv = document.getElementById('result');
+
+            errorDiv.classList.remove('show');
+            resultDiv.classList.remove('show');
+
+            // Валидация
+            if (!balance || balance <= 0) {
+                showError('Баланс должен быть > 0');
+                return;
+            }
+            if (!entry || entry <= 0) {
+                showError('Точка входа должна быть > 0');
+                return;
+            }
+            if (!sl || sl <= 0) {
+                showError('Стоп-лосс должен быть > 0');
+                return;
+            }
+            if (!tp || tp <= 0) {
+                showError('Тейк-профит должен быть > 0');
+                return;
+            }
+            if (entry === sl) {
+                showError('Entry и SL не должны быть равны');
+                return;
+            }
+
+            // Расчёты
+            const priceRisk = Math.abs(entry - sl);
+            const priceProfit = Math.abs(tp - entry);
+            const riskAmount = balance * 0.02; // 2% от баланса
+
+            // Расчитываем сколько контрактов при 1x плече для 2% риска
+            const contractsAt1x = riskAmount / priceRisk;
+            const lossAt1x = riskAmount;  // Всегда 2% от баланса
+            const profitAt1x = contractsAt1x * priceProfit;
+
+            // Выводим результаты
+            document.getElementById('leverageValue').textContent = '1x';
+            document.getElementById('leverageText').textContent = '1x';
+            document.getElementById('contractsValue').textContent = contractsAt1x.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            document.getElementById('lossValue').textContent = '$' + lossAt1x.toFixed(2);
+            document.getElementById('profitValue').textContent = '+$' + profitAt1x.toFixed(2);
+            document.getElementById('riskValue').textContent = '2.0%';
+
+            resultDiv.classList.add('show');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.classList.add('show');
+            document.getElementById('result').classList.remove('show');
+        }
+
+        // Enter для расчёта
+        document.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const form = document.querySelector('form');
+                if (form.contains(e.target)) {
+                    calculate({preventDefault: () => {}});
+                }
+            }
+        });
+    </script>
+</body>
+</html>
